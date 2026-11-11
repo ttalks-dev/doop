@@ -30,11 +30,11 @@ Then add these keys to `/doop` (generate the three secrets on the Mac and paste;
 | `SECRETS_ENCRYPTION_KEYS` | `k1:` followed by `openssl rand -base64 32` |
 | `POSTGRES_PASSWORD` | `openssl rand -hex 24` |
 | `BETTER_AUTH_URL` | `https://domo.tail8e3de9.ts.net:4443` (match the serve port in step 3) |
-| `SIGNUP_EMAIL_DOMAINS` | `dapt.tech` |
-| `ADMIN_EMAILS` | `jim.keeney@dapt.tech` |
+| `SIGNUP_EMAIL_DOMAINS` | `ttalks.show,dapt.tech` |
+| `ADMIN_EMAILS` | `jim.keeney@ttalks.show` |
 | `REQUIRE_EMAIL_VERIFICATION` | `true` |
 | `SMTP_HOST` / `SMTP_PORT` | `smtp.gmail.com` / `587` |
-| `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | the sending Google Workspace mailbox, its app password, the same address |
+| `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | the sending ttalks.show mailbox (Google Workspace), its app password, the same address |
 | `AGENT_GUIDELINE_WRITES` | `false` (hardening patch 4) |
 | `CHATGPT_CONNECT_DISABLED` | `true` |
 | `RESIDENT_TASK_LIMIT` | `0` |
@@ -68,7 +68,7 @@ If 4443 is taken, pick another port and set `BETTER_AUTH_URL` in Infisical to ma
 ```
 
 The first boot runs 52 migrations. The log must NOT say "stored unencrypted" and must show the sign-in policy with
-`dapt.tech`. Then open `https://domo.tail8e3de9.ts.net:4443`, sign up as jim.keeney@dapt.tech (admin through
+`ttalks.show,dapt.tech`. Then open `https://domo.tail8e3de9.ts.net:4443`, sign up as jim.keeney@ttalks.show (admin through
 `ADMIN_EMAILS` once the address is verified by email), delete or claim the seeded "Welcome Canvas", leave link
 sharing off, invite Dinesh by email.
 
