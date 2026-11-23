@@ -1,10 +1,11 @@
-# Doop on domo: the fork's image (non-root) + Postgres 16, bound to localhost only;
+# Doop on domo: upstream's image with our non-root layer (ops/domo/Dockerfile) + Postgres 16, bound to localhost only;
 # Tailscale serve terminates HTTPS in front of 127.0.0.1:4400.
 # Started by ops/domo/run.sh, which renders ~/doop/.env from Infisical first.
 services:
   doop:
     build:
-      context: ../..
+      context: .
+      dockerfile: Dockerfile
     image: ttalks/doop:local
     ports:
       - '127.0.0.1:4400:4400'

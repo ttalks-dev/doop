@@ -25,6 +25,7 @@ mv "$home/.env.new" "$home/.env"
 set -a; . "$home/.env"; set +a
 cd "$home/src"
 if [ $# -eq 0 ]; then
+  docker build -t doop:upstream .   # the repo's own Dockerfile, unmodified; ops/domo/Dockerfile layers on it
   exec docker compose -f ops/domo/docker-compose.yml up -d --build
 else
   exec docker compose -f ops/domo/docker-compose.yml "$@"

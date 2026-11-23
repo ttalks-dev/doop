@@ -1,6 +1,6 @@
 # Doop on domo
 
-Self-hosted Doop (fork `ttalks-dev/doop`; branch `ttalks` = upstream + the `hardening` patches + this folder) as
+Self-hosted Doop (fork `ttalks-dev/doop`; branch `ttalks` = upstream `main` + this folder + one guard in `server/actions.ts`) as
 Jim's review surface for web pages and designs. Internal only: reachable over the tailnet at
 `https://domo.tail8e3de9.ts.net:<port>`; the app (non-root image) and Postgres 16 run under Docker Compose bound to
 localhost; Tailscale serve terminates HTTPS. Every setting and secret lives in Infisical (project **Keeney
@@ -24,22 +24,22 @@ INFISICAL_CLIENT_SECRET=<paste>
 
 Then add these keys to `/doop` (generate the three secrets on the Mac and paste; nothing is typed into a chat):
 
-| Key | Value |
-| --- | --- |
-| `BETTER_AUTH_SECRET` | `openssl rand -hex 32` |
-| `SECRETS_ENCRYPTION_KEYS` | `k1:` followed by `openssl rand -base64 32` |
-| `POSTGRES_PASSWORD` | `openssl rand -hex 24` |
-| `BETTER_AUTH_URL` | `https://domo.tail8e3de9.ts.net:4443` (match the serve port in step 3) |
-| `SIGNUP_EMAIL_DOMAINS` | `ttalks.show,dapt.tech` |
-| `ADMIN_EMAILS` | `jim.keeney@ttalks.show` |
-| `REQUIRE_EMAIL_VERIFICATION` | `true` |
-| `SMTP_HOST` / `SMTP_PORT` | `smtp.gmail.com` / `587` |
+| Key                                      | Value                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET`                     | `openssl rand -hex 32`                                                                 |
+| `SECRETS_ENCRYPTION_KEYS`                | `k1:` followed by `openssl rand -base64 32`                                            |
+| `POSTGRES_PASSWORD`                      | `openssl rand -hex 24`                                                                 |
+| `BETTER_AUTH_URL`                        | `https://domo.tail8e3de9.ts.net:4443` (match the serve port in step 3)                 |
+| `SIGNUP_EMAIL_DOMAINS`                   | `ttalks.show,dapt.tech`                                                                |
+| `ADMIN_EMAILS`                           | `jim.keeney@ttalks.show`                                                               |
+| `REQUIRE_EMAIL_VERIFICATION`             | `true`                                                                                 |
+| `SMTP_HOST` / `SMTP_PORT`                | `smtp.gmail.com` / `587`                                                               |
 | `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | the sending ttalks.show mailbox (Google Workspace), its app password, the same address |
-| `AGENT_GUIDELINE_WRITES` | `false` (hardening patch 4) |
-| `CHATGPT_CONNECT_DISABLED` | `true` |
-| `RESIDENT_TASK_LIMIT` | `0` |
-| `WEBHOOK_ALLOW_PRIVATE_URLS` | `false` |
-| `ANTHROPIC_API_KEY` | optional, only if the built-in agent should run on a server key |
+| `AGENT_GUIDELINE_WRITES`                 | `false` (the fork's one source patch, below)                                           |
+| `CHATGPT_CONNECT_DISABLED`               | `true`                                                                                 |
+| `RESIDENT_TASK_LIMIT`                    | `0`                                                                                    |
+| `WEBHOOK_ALLOW_PRIVATE_URLS`             | `false`                                                                                |
+| `ANTHROPIC_API_KEY`                      | optional, only if the built-in agent should run on a server key                        |
 
 Leave `VITE_POSTHOG_KEY` and `POSTHOG_KEY` unset: no analytics leave the network. Verify from domo before
 starting: `infisical export` through `run.sh` fails loudly when the folder has fewer than six keys.
@@ -87,7 +87,9 @@ claude mcp add --transport http doop https://domo.tail8e3de9.ts.net:4443/mcp --h
 cd ~/doop/src && git pull --ff-only && ~/doop/src/ops/domo/run.sh
 ```
 
-Upstream releases weekly; the `ttalks` branch is rebased onto a chosen tag on the Mac, never on domo.
+Upstream releases weekly; the `ttalks` branch is rebased onto upstream `main` on the Mac, never on domo
+(`git fetch origin && git rebase origin/main`, run the tests, `git push --force-with-lease fork ttalks`; then on domo
+`git fetch && git reset --hard fork/ttalks`). The fork stays small so this rebase stays conflict-free.
 
 ## 7. Backups
 
@@ -97,12 +99,21 @@ Upstream releases weekly; the `ttalks` branch is rebased onto a chosen tag on th
 ~/doop/src/ops/domo/run.sh exec -T db pg_dump -U doop doop | gzip > ~/doop/backup-$(date +%F).sql.gz
 ```
 
-## What the hardening branch changes (all upstreamable)
+## How the fork differs from upstream (kept as small as possible)
 
-1. `doop:edited` saves refused for frames with executable content (frame self-rewrite).
-2. A Content-Security-Policy meta in every frame document (no beacons, no remote code, no nested frames).
-3. The image runs as uid 10001, not root.
-4. `AGENT_GUIDELINE_WRITES=false`: agents cannot write style guides into the agent system prompt.
+Principle (Jim, 2026-11-23): stay as close to kgoedecke/doop as possible so its improvements arrive by rebase. The
+author answered our hardening PR #505 on 2026-11-21; what follows is what that left.
+
+- **Source: one patch.** `AGENT_GUIDELINE_WRITES=false` makes `actions.setGuideline` refuse any agent actor, the one
+  place every path writes a guide through (MCP `set_guidelines`, the resident, GitHub imports; upstream declined our
+  first version because imports bypassed it). People's edits and accepted distiller proposals still land. Test:
+  `tests/agentGuidelineWrites.test.ts`. To offer upstream again in this shape.
+- **Non-root: outside the source.** `ops/domo/Dockerfile` layers uid 10001 over the unmodified upstream image
+  (`doop:upstream`, built by `run.sh`). Upstream deferred this until existing installs can upgrade their data volume.
+- **Dropped.** Our frame-save patch (upstream fixed it its own way in #570) and the frame CSP (upstream declined: it
+  breaks CDN scripts and relative asset URLs in imported designs). Residual risk accepted: a frame's script can
+  reach the network when viewed; the tailnet is the boundary and the frames are ours. The old branch is tag
+  `ttalks-2026-11-10`.
 
 Open upstream, handled here by policy: agent keys are full-account and never expire (one key per agent, invited per
 canvas, rotated); `/i/<frameId>.png` renders are public to anyone with the id (the tailnet is the boundary);
