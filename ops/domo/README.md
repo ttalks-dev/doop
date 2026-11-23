@@ -89,7 +89,7 @@ cd ~/doop/src && git pull --ff-only && ~/doop/src/ops/domo/run.sh
 
 Upstream releases weekly; the `ttalks` branch is rebased onto upstream `main` on the Mac, never on domo
 (`git fetch origin && git rebase origin/main`, run the tests, `git push --force-with-lease fork ttalks`; then on domo
-`git fetch && git reset --hard fork/ttalks`). The fork stays small so this rebase stays conflict-free.
+`git fetch && git reset --hard origin/ttalks`; on domo the fork is `origin`, on the Mac it is `fork`). The fork stays small so this rebase stays conflict-free.
 
 ## 7. Backups
 
