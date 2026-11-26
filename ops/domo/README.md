@@ -9,10 +9,10 @@ start. Evaluation and security review: `~/dev/platform/harness/docs/evaluations/
 
 Jim runs every on-host command in his own `jim_ai` session on domo (bare commands, no `ssh host '…'`).
 
-## 1. Infisical: the `/doop` folder on the `domo` identity (console, Jim)
+## 1. Infisical: the `/doop` folder on the `botfarm` identity (console, Jim)
 
-Doop reads through the host identity **`domo`** (the one Hermes uses), not an identity of its own: Infisical bills
-per identity (`~/dev/workspace-meta/docs/runbooks/infisical-consolidation-2026-11.md`). Grant `domo` an Additional
+Doop reads through the shared trusted-services identity **`botfarm`** (the one Hermes and Meridian use), not an identity of its own: Infisical bills
+per identity (`~/dev/workspace-meta/docs/runbooks/infisical-consolidation-2026-11.md`). Grant `botfarm` an Additional
 Privilege on project **Keeney Advisory** (Secrets, Read, env `prod`, path `/doop`), then copy its credentials from
 Hermes's file into Doop's, in the names `run.sh` reads (no value is typed or shown):
 
