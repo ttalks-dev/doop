@@ -9,11 +9,19 @@ start. Evaluation and security review: `~/dev/platform/harness/docs/evaluations/
 
 Jim runs every on-host command in his own `jim_ai` session on domo (bare commands, no `ssh host '…'`).
 
-## 1. Infisical: the `doop` machine identity and the `/doop` folder (console, Jim)
+## 1. Infisical: the `/doop` folder on the `domo` identity (console, Jim)
 
-Follow `~/dev/workspace-meta/docs/runbooks/infisical-machine-identity.md` with name `doop`, project **Keeney
-Advisory**, folder `/doop` (No Access role plus an Additional Privilege: Secrets, Read, env `prod`, path `/doop`).
-Put the client id and secret on domo:
+Doop reads through the host identity **`domo`** (the one Hermes uses), not an identity of its own: Infisical bills
+per identity (`~/dev/workspace-meta/docs/runbooks/infisical-consolidation-2026-11.md`). Grant `domo` an Additional
+Privilege on project **Keeney Advisory** (Secrets, Read, env `prod`, path `/doop`), then copy its credentials from
+Hermes's file into Doop's, in the names `run.sh` reads (no value is typed or shown):
+
+```
+umask 077; set -a; . ~/.config/hermes/infisical-auth.env; set +a; mkdir -p ~/.config/doop
+printf 'INFISICAL_CLIENT_ID=%s\nINFISICAL_CLIENT_SECRET=%s\n' "$INFISICAL_UA_CLIENT_ID" "$INFISICAL_UA_CLIENT_SECRET" > ~/.config/doop/infisical-auth.env
+```
+
+(Before 2026-11-25 Doop had its own identity, created by hand:)
 
 ```
 mkdir -p ~/.config/doop && umask 077 && cat > ~/.config/doop/infisical-auth.env
